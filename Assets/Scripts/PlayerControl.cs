@@ -6,7 +6,7 @@ public class Boundary {
 	public float xMin, xMax, yMin, yMax;				// Boundary for the player
 }
 
-public class PlayerController : MonoBehaviour
+public class PlayerControl : MonoBehaviour
 {
 	[HideInInspector]
 	public bool facingRight = true;			// For determining which way the player is currently facing.
