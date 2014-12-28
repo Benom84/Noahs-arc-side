@@ -52,8 +52,10 @@ public class PlayerControl : MonoBehaviour
 		
 		if (grounded) {
 			
+
 			currentGroundObject = Physics2D.Linecast (transform.position, groundCheck.position, 1 << LayerMask.NameToLayer ("Ground")).collider.gameObject;
 			currentGround = currentGroundObject.GetInstanceID();
+			Debug.Log("Grounded: " + currentGround);
 			if (currentGround != oldGround)
 				oldGround = currentGround;
 
