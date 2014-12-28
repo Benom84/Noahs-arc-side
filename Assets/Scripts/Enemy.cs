@@ -49,12 +49,12 @@ public class Enemy : MonoBehaviour
 	private bool left;					// If the enemy is facing left
 	private Transform groundCheck;
 	private int ground;					// The current ground's uid
-	private GameObject playerScript;
 	private int playerGround;			// The player's current ground
 	private bool grounded;				// To check that the enemy is on the ground
 	private GameObject mapManager;		// The map
 	private bool isJumping = false;			// If the enemy is in the middle of a jump
 	private BouncerNode nextBouncerNode;		//The node of the next bouncer the enemy is going towards
+	private PlayerControl playerScript;				// Link to player's script
 
 	private GameObject[] bouncers;		// List of all Bouncers
 	private int[,] edgeMatrix;			// The edge matrix
@@ -70,7 +70,7 @@ public class Enemy : MonoBehaviour
 
 		groundCheck = transform.Find ("groundCheck").transform;
 		player = GameObject.FindGameObjectWithTag ("Player");
-
+		playerScript = player.GetComponent<PlayerControl> ();
 
 
 		mapManager = GameObject.FindGameObjectWithTag ("map");
@@ -86,17 +86,17 @@ public class Enemy : MonoBehaviour
 
 	void FixedUpdate ()
 	{
+
 		Collider2D[] frontHits = Physics2D.OverlapPointAll (frontCheck.position, 1);
 		grounded = Physics2D.Linecast (transform.position, groundCheck.position, 1 << LayerMask.NameToLayer ("Ground"));
 
 		if (grounded) 
 			ground = Physics2D.Linecast (transform.position, groundCheck.position, 1 << LayerMask.NameToLayer ("Ground")).collider.gameObject.GetInstanceID ();
 
-		if (player != null) {
 
-			PlayerControl test = player.GetComponent <PlayerControl> ();
-			//GameObject test1 = test.currentGroundObject;
-			playerGround = player.GetComponent <PlayerControl> ().currentGround;
+
+		playerGround = player.GetComponent<PlayerControl>().currentGround;
+		//Debug.Log("Getting current player ground regular:" + playerGround);
 
 				// If ((we are not at the player's ground and the player changed location) or (our ground is not the one we wanted)) and grounded
 				if ((rigidbody2D.velocity.y == 0) && isJumping && grounded && (ground != playerGround)) {
@@ -107,7 +107,6 @@ public class Enemy : MonoBehaviour
 						xDestination = player.transform.position.x;
 
 				}
-		}
 
 
 
@@ -161,10 +160,13 @@ public class Enemy : MonoBehaviour
 		int jumpHorizontalDirection = jumpType % 10;
 		int jumpVerticalDirection = jumpType / 10;
 
-		if ((jumpHorizontalDirection == 0) && !left)
-			Flip ();
-		else if ((jumpHorizontalDirection == 1) && left)
-		          Flip();
+		if ((jumpHorizontalDirection == 0) && !left) {
+						Debug.Log ("I should jump to the left and I'm going right - so flip");			
+						Flip ();
+				} else if ((jumpHorizontalDirection == 1) && left) {
+			Debug.Log("I should jump to the right and I'm going left - so flip");
+						Flip ();
+				}
 
 		if (jumpVerticalDirection == 1)
 			// Add a vertical and horizontal force to the enemy.
@@ -231,6 +233,7 @@ public class Enemy : MonoBehaviour
 		// Multiply the x component of localScale by -1.
 		Vector3 enemyScale = transform.localScale;
 		enemyScale.x *= -1;
+		Debug.Log ("I'm flipping!!!!");
 		transform.localScale = enemyScale;
 		left = !(left);
 
@@ -240,6 +243,7 @@ public class Enemy : MonoBehaviour
 	private BouncerNode getNextBounderNode()
 	{
 		Transform[] currGroundBouncersT = Physics2D.Linecast (transform.position, groundCheck.position, 1 << LayerMask.NameToLayer ("Ground")).collider.gameObject.GetComponentsInChildren<Transform> ();
+		Debug.Log ("The number of bouncers: " + bouncers.Length);
 
 		// Calculate the next bouncer to go to
 		Queue<BouncerNode> q = new Queue<BouncerNode> ();
