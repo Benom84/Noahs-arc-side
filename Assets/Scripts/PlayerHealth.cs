@@ -103,6 +103,6 @@ public class PlayerHealth : MonoBehaviour
 		healthBar.material.color = Color.Lerp(Color.green, Color.red, 1 - health * 0.01f);
 		
 		// Set the scale of the health bar to be proportional to the player's health.
-		healthBar.transform.localScale = new Vector3(healthScale.x * health * 0.01f, 1, 1);
+		healthBar.transform.localScale = new Vector3(healthScale.x * health * 0.01f, healthScale.y, 1);
 	}
 }
