@@ -99,18 +99,23 @@ public class Enemy : MonoBehaviour
 		//Debug.Log("Getting current player ground regular:" + playerGround);
 
 		Debug.Log("IsJumping? " + isJumping + " grounded? " + grounded + " Velocity is: " + rigidbody2D.velocity.y);
-		// If ((we are not at the player's ground and the player changed location) or (our ground is not the one we wanted)) and grounded
-		if ((rigidbody2D.velocity.y == 0) && isJumping && grounded && (ground != playerGround)) {
+		if (player != null) {
+			
+			playerGround = player.GetComponent <PlayerControl> ().currentGround;
+			
+			// If ((we are not at the player's ground and the player changed location) or (our ground is not the one we wanted)) and grounded
+			if ((rigidbody2D.velocity.y == 0) && isJumping && grounded && (ground != playerGround)) {
 				nextBouncerNode = getNextBounderNode ();
 				xDestination = nextBouncerNode.getBouncer ().transform.position.x;
 				isJumping = false;
-		} else if (ground == playerGround) {
+			} else if (ground == playerGround) {
 				xDestination = player.transform.position.x;
-
+				
+			}
 		}
 
 
-		if (!isJumping) 
+		if (transform.rigidbody2D.velocity.y == 0)
 			if (((transform.position.x - xDestination < 0) && left) || 
 					((transform.position.x - xDestination > 0) && !left)) {
 			Debug.Log("This rule is making me flip rule 01 xDestination: " + xDestination + " Going left? " + left);		
@@ -228,6 +233,7 @@ public class Enemy : MonoBehaviour
 
 			// Instantiate the 100 points prefab at this point.
 			Instantiate (hundredPointsUI, scorePos, Quaternion.identity);
+		Destroy (gameObject);
 	}
 
 	public void Flip ()
