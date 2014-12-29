@@ -98,24 +98,24 @@ public class Enemy : MonoBehaviour
 		playerGround = player.GetComponent<PlayerControl>().currentGround;
 		//Debug.Log("Getting current player ground regular:" + playerGround);
 
-				// If ((we are not at the player's ground and the player changed location) or (our ground is not the one we wanted)) and grounded
-				if ((rigidbody2D.velocity.y == 0) && isJumping && grounded && (ground != playerGround)) {
-						nextBouncerNode = getNextBounderNode ();
-						xDestination = nextBouncerNode.getBouncer ().transform.position.x;
-						isJumping = false;
-				} else if (ground == playerGround) {
-						xDestination = player.transform.position.x;
+		Debug.Log("IsJumping? " + isJumping + " grounded? " + grounded + " Velocity is: " + rigidbody2D.velocity.y);
+		// If ((we are not at the player's ground and the player changed location) or (our ground is not the one we wanted)) and grounded
+		if ((rigidbody2D.velocity.y == 0) && isJumping && grounded && (ground != playerGround)) {
+				nextBouncerNode = getNextBounderNode ();
+				xDestination = nextBouncerNode.getBouncer ().transform.position.x;
+				isJumping = false;
+		} else if (ground == playerGround) {
+				xDestination = player.transform.position.x;
 
-				}
+		}
 
 
-
-
-		if (transform.rigidbody2D.velocity.y == 0)
+		if (!isJumping) 
 			if (((transform.position.x - xDestination < 0) && left) || 
-			    ((transform.position.x - xDestination > 0) && !left))
-				Flip ();
-
+					((transform.position.x - xDestination > 0) && !left)) {
+			Debug.Log("This rule is making me flip rule 01 xDestination: " + xDestination + " Going left? " + left);		
+			Flip ();
+				}
 		// Check each of the colliders.
 		foreach (Collider2D c in frontHits) {
 			// If any of the colliders is an Obstacle...
@@ -140,6 +140,8 @@ public class Enemy : MonoBehaviour
 		if (HP <= 0 && !dead)
 			// ... call the death function.
 			Death ();
+
+		Debug.Log ("My xDestination is: " + xDestination);
 	}
 
 
@@ -174,7 +176,7 @@ public class Enemy : MonoBehaviour
 		else
 			rigidbody2D.AddForce(new Vector2(jumpForceHor * (left ? -1 : 1), jumpForce/10));
 
-		isJumping = true;
+		isJumping = true;	
 	
 	}
 
