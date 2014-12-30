@@ -96,7 +96,7 @@ public class Enemy : MonoBehaviour
 		if ((transform.rigidbody2D.velocity.y == 0) && (lastVelocity == 0) && !(isJumping))
 			if (((transform.position.x - xDestination < 0.1) && left) || 
 			   ((transform.position.x - xDestination > 0.1) && !left)) {
-			Debug.Log("This rule is making me flip rule 01 xDestination: " + xDestination + " My Destination"+ transform.position.x +  " Going left? " + left);		
+			//Debug.Log("This rule is making me flip rule 01 xDestination: " + xDestination + " My Destination"+ transform.position.x +  " Going left? " + left);		
 			Flip ();
 		}
 
@@ -118,8 +118,8 @@ public class Enemy : MonoBehaviour
 
 			playerChangedGround = (playerGround != oldPlayerGround);
 
-			Debug.Log("JustLanded? " + justLanded + " grounded? " + grounded + " Velocity is: " + rigidbody2D.velocity.y + " oldPlayerGround: " + oldPlayerGround + " playerGround: " + playerGround + " Changed Ground: " + 
-			          playerChangedGround);
+			//Debug.Log("JustLanded? " + justLanded + " grounded? " + grounded + " Velocity is: " + rigidbody2D.velocity.y + " oldPlayerGround: " + oldPlayerGround + " playerGround: " + playerGround + " Changed Ground: " + 
+			  //        playerChangedGround);
 			//Debug.Log("IsJumping? " + isJumping + " grounded? " + grounded + " Velocity is: " + rigidbody2D.velocity.y + " oldPlayerGround: " + oldPlayerGround + " playerGround: " + playerGround);
 
 			// If we are not moving vertically and on the ground and it is not the player ground and either we just jumped or the player changed ground
@@ -128,12 +128,12 @@ public class Enemy : MonoBehaviour
 				oldPlayerGround = playerGround;
 				nextBouncerNode = getNextBounderNode ();
 				xDestination = nextBouncerNode.getBouncer ().transform.position.x;
-				Debug.Log("Enemy is finding the next bouncer to go to. xDestination is: " + xDestination);
+				//Debug.Log("Enemy is finding the next bouncer to go to. xDestination is: " + xDestination);
 				//isJumping = false;
 			} else if (ground == playerGround) {
 				oldPlayerGround = playerGround;
 				xDestination = player.transform.position.x;
-				Debug.Log("Enemy is on the player's ground. xDestination is: " + xDestination);
+				//Debug.Log("Enemy is on the player's ground. xDestination is: " + xDestination);
 				nextBouncerNode = null;
 				
 			}
@@ -166,7 +166,7 @@ public class Enemy : MonoBehaviour
 	void OnTriggerStay2D(Collider2D hit)
 	{
 		
-		Debug.Log ("Entered OnTriggerStay with bouncer: " + nextBouncerNode);
+		//Debug.Log ("Entered OnTriggerStay with bouncer: " + nextBouncerNode);
 		if ((nextBouncerNode != null) && (hit.gameObject == nextBouncerNode.getBouncer()) && (grounded)) {
 			Debug.Log ("Calling jump from collider stay");
 			Jump();
@@ -196,8 +196,8 @@ public class Enemy : MonoBehaviour
 
 		if (jumpVerticalDirection == 1)
 			// Add a vertical and horizontal force to the enemy.
-			rigidbody2D.AddForce(new Vector2(jumpForceHor * (left ? -1 : 1) * (directionChange ? 0.1f : 1), jumpForce * (directionChange ? 2f : 1)));
-		else
+			rigidbody2D.AddForce(new Vector2(jumpForceHor * (left ? -1 : 1) * (directionChange ? 0.1f : 1), jumpForce * (directionChange ? 1f : 1)));
+		else if (jumpVerticalDirection == 2)
 			rigidbody2D.AddForce(new Vector2(jumpForceHor * (left ? -1 : 1), jumpForce/4f));
 
 		isJumping = true;	
@@ -285,6 +285,7 @@ public class Enemy : MonoBehaviour
 				{
 
 					bnArray[currIndex].setLabel(0);
+					//Debug.Log("Labeled 0 Bouncer: " + bnArray[currIndex].getBouncer().GetInstanceID());
 					q.Enqueue(bnArray[currIndex]);
 				}
 			}
@@ -305,6 +306,7 @@ public class Enemy : MonoBehaviour
 						q.Enqueue (bnArray [i]);
 						bnArray [i].setLabel (label + 1);
 						bnArray [i].setFather (parentNode);
+						//Debug.Log("I just set bouncer: " + bnArray[i].getBouncer().GetInstanceID() + " with father " + parentNode.getBouncer().GetInstanceID() + " and label: " + (label + 1) + " at location: " + bnArray[i].getBouncer().transform.position);
 					}
 				}
 			}
@@ -321,10 +323,12 @@ public class Enemy : MonoBehaviour
 		// Get the index of the bouncer closest to the player and set destination as that bouncer
 		int playerBouncerIndex = indexOfBouncer (mapManager.GetComponent<MapCreator>().getPlayerClosestBouncer ());
 		BouncerNode destination = bnArray [playerBouncerIndex];
+		//Debug.Log ("First destination is: " + destination.getBouncer ().GetInstanceID () + " At location: " + destination.getBouncer ().transform.position);
 		while (destination.getFather() != null) 
 		{
 			destination.getFather().setJumpType(edgeMatrix [indexOfBouncer (destination.getFather().getBouncer ()), indexOfBouncer (destination.getBouncer ())]);
 			destination = destination.getFather ();
+			//Debug.Log ("Next destination is: " + destination.getBouncer ().GetInstanceID () + " At location: " + destination.getBouncer ().transform.position);
 			
 		}
 		return destination;

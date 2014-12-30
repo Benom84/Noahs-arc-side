@@ -50,8 +50,14 @@ public class MapCreator : MonoBehaviour {
 
 				// Check if the other bouncer is higher than this
 				bool higher = (otherBouncer.transform.position.y > (bouncer.transform.position.y + surfaceChange));
-
-				if (higher) 
+				//Debug.Log ("Checking bouncer: " + bouncer.GetInstanceID() + " and other bouncer: " + otherBouncer.GetInstanceID());
+				//Debug.Log ("Bouncer Transform ID: " + bouncer.transform.parent.gameObject.GetInstanceID() + " Other bouncer transform is: " +  otherBouncer.transform.parent.gameObject.GetInstanceID());
+				if (bouncer.transform.parent.gameObject.GetInstanceID() == otherBouncer.transform.parent.gameObject.GetInstanceID())
+				{
+					edgeMatrix[row, col] = 33;
+					Debug.Log("Added an edge between: " + bouncer.GetInstanceID() + " and " + otherBouncer.GetInstanceID() + " Type: " + edgeMatrix[row, col]);
+				}
+				else if (higher) 
 				{
 					if (distance < maxUpJump) 
 					{
@@ -76,6 +82,7 @@ public class MapCreator : MonoBehaviour {
 
 						Debug.Log("Added an edge between: " + bouncer.GetInstanceID() + " and " + otherBouncer.GetInstanceID() + " Type: " + edgeMatrix[row, col]);
 					}
+
 				}
 
 				col++;
@@ -100,11 +107,13 @@ public class MapCreator : MonoBehaviour {
 		{
 			if (transformBouncer.tag == "Bouncer") 
 			{
-				if ((Vector2.Distance(transformBouncer.position, player.transform.position)) < distance)
+				if ((Vector2.Distance(transformBouncer.position, player.transform.position)) < distance) {
+					distance = Vector2.Distance(transformBouncer.position, player.transform.position);
 					result = transformBouncer.gameObject;
+				}
 			}
 		}
-		
 		return result;
 	}
+
 }
