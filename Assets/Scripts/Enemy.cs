@@ -168,7 +168,7 @@ public class Enemy : MonoBehaviour
 		
 		//Debug.Log ("Entered OnTriggerStay with bouncer: " + nextBouncerNode);
 		if ((nextBouncerNode != null) && (hit.gameObject == nextBouncerNode.getBouncer()) && (grounded)) {
-			Debug.Log ("Calling jump from collider stay");
+			//Debug.Log ("Calling jump from collider stay");
 			Jump();
 		}
 		
@@ -328,7 +328,7 @@ public class Enemy : MonoBehaviour
 		{
 			destination.getFather().setJumpType(edgeMatrix [indexOfBouncer (destination.getFather().getBouncer ()), indexOfBouncer (destination.getBouncer ())]);
 			destination = destination.getFather ();
-			//Debug.Log ("Next destination is: " + destination.getBouncer ().GetInstanceID () + " At location: " + destination.getBouncer ().transform.position);
+			//Debug.Log ("Next destination is: " + destination.getBouncer ().GetInstanceID () + " At location: " + destination.getBouncer ().transform.position +  " With Jump Type: " + destination.getJumpType());
 			
 		}
 		return destination;
