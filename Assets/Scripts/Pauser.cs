@@ -12,7 +12,7 @@ public class Pauser : MonoBehaviour {
 	void Update () {
 		if(Input.GetKeyUp(KeyCode.P))
 		{
-			paused = !paused;
+			paused = !paused; 
 		}
 
 		if (paused) {
