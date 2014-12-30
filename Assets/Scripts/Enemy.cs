@@ -50,11 +50,15 @@ public class Enemy : MonoBehaviour
 	private Transform groundCheck;
 	private int ground;					// The current ground's uid
 	private int playerGround;			// The player's current ground
+	private int oldPlayerGround;			// The player's current ground
 	private bool grounded;				// To check that the enemy is on the ground
 	private GameObject mapManager;		// The map
 	private bool isJumping = false;			// If the enemy is in the middle of a jump
-	private BouncerNode nextBouncerNode;		//The node of the next bouncer the enemy is going towards
-	private PlayerControl playerScript;				// Link to player's script
+	private BouncerNode nextBouncerNode;	//The node of the next bouncer the enemy is going towards
+	private PlayerControl playerScript;		// Link to player's script
+	private float lastVelocity;
+	private bool justLanded;
+	private bool playerChangedGround;
 
 	private GameObject[] bouncers;		// List of all Bouncers
 	private int[,] edgeMatrix;			// The edge matrix
@@ -71,6 +75,7 @@ public class Enemy : MonoBehaviour
 		groundCheck = transform.Find ("groundCheck").transform;
 		player = GameObject.FindGameObjectWithTag ("Player");
 		playerScript = player.GetComponent<PlayerControl> ();
+		oldPlayerGround = 0;
 
 
 		mapManager = GameObject.FindGameObjectWithTag ("map");
@@ -87,54 +92,61 @@ public class Enemy : MonoBehaviour
 	void FixedUpdate ()
 	{
 
-		Collider2D[] frontHits = Physics2D.OverlapPointAll (frontCheck.position, 1);
+		// If the enemy is not moving at the y axis
+		if ((transform.rigidbody2D.velocity.y == 0) && (lastVelocity == 0) && !(isJumping))
+			if (((transform.position.x - xDestination < 0.1) && left) || 
+			   ((transform.position.x - xDestination > 0.1) && !left)) {
+			Debug.Log("This rule is making me flip rule 01 xDestination: " + xDestination + " My Destination"+ transform.position.x +  " Going left? " + left);		
+			Flip ();
+		}
+
 		grounded = Physics2D.Linecast (transform.position, groundCheck.position, 1 << LayerMask.NameToLayer ("Ground"));
 
 		if (grounded) 
 			ground = Physics2D.Linecast (transform.position, groundCheck.position, 1 << LayerMask.NameToLayer ("Ground")).collider.gameObject.GetInstanceID ();
 
 
+		justLanded = (rigidbody2D.velocity.y == 0) && (rigidbody2D.velocity.y != lastVelocity) && grounded;
+		if (justLanded)
+						isJumping = false;
 
-		playerGround = player.GetComponent<PlayerControl>().currentGround;
-		//Debug.Log("Getting current player ground regular:" + playerGround);
 
-		Debug.Log("IsJumping? " + isJumping + " grounded? " + grounded + " Velocity is: " + rigidbody2D.velocity.y);
-		if (player != null) {
-			
-			playerGround = player.GetComponent <PlayerControl> ().currentGround;
-			
-			// If ((we are not at the player's ground and the player changed location) or (our ground is not the one we wanted)) and grounded
-			if ((rigidbody2D.velocity.y == 0) && isJumping && grounded && (ground != playerGround)) {
+
+		if ((player != null) && grounded) {
+
+			playerGround = playerScript.currentGround;
+
+			playerChangedGround = (playerGround != oldPlayerGround);
+
+			Debug.Log("JustLanded? " + justLanded + " grounded? " + grounded + " Velocity is: " + rigidbody2D.velocity.y + " oldPlayerGround: " + oldPlayerGround + " playerGround: " + playerGround + " Changed Ground: " + 
+			          playerChangedGround);
+			//Debug.Log("IsJumping? " + isJumping + " grounded? " + grounded + " Velocity is: " + rigidbody2D.velocity.y + " oldPlayerGround: " + oldPlayerGround + " playerGround: " + playerGround);
+
+			// If we are not moving vertically and on the ground and it is not the player ground and either we just jumped or the player changed ground
+			if ((justLanded || playerChangedGround) && (ground != playerGround)) {
+
+				oldPlayerGround = playerGround;
 				nextBouncerNode = getNextBounderNode ();
 				xDestination = nextBouncerNode.getBouncer ().transform.position.x;
-				isJumping = false;
+				Debug.Log("Enemy is finding the next bouncer to go to. xDestination is: " + xDestination);
+				//isJumping = false;
 			} else if (ground == playerGround) {
+				oldPlayerGround = playerGround;
 				xDestination = player.transform.position.x;
+				Debug.Log("Enemy is on the player's ground. xDestination is: " + xDestination);
+				nextBouncerNode = null;
 				
 			}
 		}
 
 
-		if (transform.rigidbody2D.velocity.y == 0)
-			if (((transform.position.x - xDestination < 0) && left) || 
-					((transform.position.x - xDestination > 0) && !left)) {
-			Debug.Log("This rule is making me flip rule 01 xDestination: " + xDestination + " Going left? " + left);		
-			Flip ();
-				}
-		// Check each of the colliders.
-		foreach (Collider2D c in frontHits) {
-			// If any of the colliders is an Obstacle...
-			if (c.tag == "Obstacle") {
-				// ... Flip the enemy and stop checking the other colliders.
-				Flip ();
-				break;
-			}
-		}
-
 		// Set the enemy's velocity to moveSpeed in the x direction.
-		// Only if we are not on the destination itself.
-		if (Mathf.Abs(xDestination - transform.position.x) > 0.1)
+		// Only if we are not on the destination itself and grounded
+		if ((Mathf.Abs(xDestination - transform.position.x) > 0) && (rigidbody2D.velocity.y == 0))
 			rigidbody2D.velocity = new Vector2 (transform.localScale.x * moveSpeed, rigidbody2D.velocity.y);
+
+		// Set the last velocity
+		lastVelocity = transform.rigidbody2D.velocity.y;
 
 		// If the enemy has one hit point left and has a damagedEnemy sprite...
 		if (HP == 1 && damagedEnemy != null)
@@ -144,17 +156,19 @@ public class Enemy : MonoBehaviour
 		// If the enemy has zero or fewer hit points and isn't dead yet...
 		if (HP <= 0 && !dead)
 			// ... call the death function.
-			Death ();
+			//Death ();
+						Destroy (gameObject);
 
-		Debug.Log ("My xDestination is: " + xDestination);
+		//Debug.Log ("My xDestination is: " + xDestination);
 	}
 
 
 	void OnTriggerStay2D(Collider2D hit)
 	{
 		
-		
+		Debug.Log ("Entered OnTriggerStay with bouncer: " + nextBouncerNode);
 		if ((nextBouncerNode != null) && (hit.gameObject == nextBouncerNode.getBouncer()) && (grounded)) {
+			Debug.Log ("Calling jump from collider stay");
 			Jump();
 		}
 		
@@ -163,23 +177,28 @@ public class Enemy : MonoBehaviour
 	private void Jump()
 	{
 		Debug.Log("I should jump " + nextBouncerNode.getJumpType() + " the bouncer is " + nextBouncerNode.getBouncer().GetInstanceID()	);
+		bool directionChange = false;
 		int jumpType = nextBouncerNode.getJumpType ();
-		int jumpHorizontalDirection = jumpType % 10;
-		int jumpVerticalDirection = jumpType / 10;
+		// Init the nextBouncerNode so that onTriggerStay2D won't activate again
+		nextBouncerNode = null;
+		int jumpHorizontalDirection = jumpType % 10; //0 is left, 1 is right
+		int jumpVerticalDirection = jumpType / 10; //1 is up, 2 is down
 
 		if ((jumpHorizontalDirection == 0) && !left) {
-						Debug.Log ("I should jump to the left and I'm going right - so flip");			
-						Flip ();
-				} else if ((jumpHorizontalDirection == 1) && left) {
+			Debug.Log ("I should jump to the left and I'm going right - so flip");
+			directionChange = true;
+			Flip ();
+		} else if ((jumpHorizontalDirection == 1) && left) {
+			directionChange = true;
 			Debug.Log("I should jump to the right and I'm going left - so flip");
-						Flip ();
-				}
+			Flip ();
+		}
 
 		if (jumpVerticalDirection == 1)
 			// Add a vertical and horizontal force to the enemy.
-			rigidbody2D.AddForce(new Vector2(jumpForceHor * (left ? -1 : 1), jumpForce));
+			rigidbody2D.AddForce(new Vector2(jumpForceHor * (left ? -1 : 1) * (directionChange ? 0.1f : 1), jumpForce * (directionChange ? 2f : 1)));
 		else
-			rigidbody2D.AddForce(new Vector2(jumpForceHor * (left ? -1 : 1), jumpForce/10));
+			rigidbody2D.AddForce(new Vector2(jumpForceHor * (left ? -1 : 1), jumpForce/4f));
 
 		isJumping = true;	
 	
@@ -241,7 +260,6 @@ public class Enemy : MonoBehaviour
 		// Multiply the x component of localScale by -1.
 		Vector3 enemyScale = transform.localScale;
 		enemyScale.x *= -1;
-		Debug.Log ("I'm flipping!!!!");
 		transform.localScale = enemyScale;
 		left = !(left);
 
@@ -251,7 +269,7 @@ public class Enemy : MonoBehaviour
 	private BouncerNode getNextBounderNode()
 	{
 		Transform[] currGroundBouncersT = Physics2D.Linecast (transform.position, groundCheck.position, 1 << LayerMask.NameToLayer ("Ground")).collider.gameObject.GetComponentsInChildren<Transform> ();
-		Debug.Log ("The number of bouncers: " + bouncers.Length);
+		//Debug.Log ("The number of bouncers: " + bouncers.Length);
 
 		// Calculate the next bouncer to go to
 		Queue<BouncerNode> q = new Queue<BouncerNode> ();
